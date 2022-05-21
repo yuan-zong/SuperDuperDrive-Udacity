@@ -19,9 +19,9 @@
                 <span>Your changes were not saved. Click <a>here</a> to continue.</span>
             </div>
             <div class="alert alert-danger fill-parent">
-                <h1 class="display-5">Error</h1>
-                <span>Example Error Message</span>
-                <span>Click <a>here</a> to continue.</span>
+                <h1 class="display-5" th:unless="${uploadSucceeded}">Error</h1>
+                <span th:unless="${uploadSucceeded}" th:text="${uploadFailedMessage}">Example Error Message</span>
+<!--                <span>Click <a>here</a> to continue.</span>-->
             </div>
         </div>
     </body>
