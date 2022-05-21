@@ -20,6 +20,7 @@ public class FileService {
 
     public static int ERROR_FILE_ALREADY_EXISTED = -2;
     public static int ERROR_FILE_NOT_FOUND = -3;
+    public static int ERROR_NO_FILE_SELECTED = -4;
     public static int ERROR_GENERAL = -1;
 
     public FileService(FileMapper fileMapper) {
@@ -43,6 +44,9 @@ public class FileService {
     }
 
     public int insert(MultipartFile uploadFile, User user) throws IOException {
+        if (uploadFile.getOriginalFilename().isEmpty()) {
+            return ERROR_NO_FILE_SELECTED;
+        }
         InputStream is = uploadFile.getInputStream();
         byte[] filedata = new byte[(int) uploadFile.getSize()];
         is.read(filedata);

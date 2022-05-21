@@ -5,8 +5,6 @@ import com.udacity.jwdnd.course1.cloudstorage.model.FileForm;
 import com.udacity.jwdnd.course1.cloudstorage.model.User;
 import com.udacity.jwdnd.course1.cloudstorage.services.FileService;
 import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
-import org.mybatis.logging.Logger;
-import org.mybatis.logging.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,10 +22,9 @@ import java.io.*;
 @Controller
 @RequestMapping("/files")
 public class FileController {
-
-    private final Logger logger = LoggerFactory.getLogger(FileController.class);
     private UserService userService;
     private FileService fileService;
+
 
     public FileController(UserService userService, FileService fileService) {
         this.userService = userService;
@@ -39,7 +36,9 @@ public class FileController {
         String username = authentication.getName();
         User user = userService.getUser(username);
         int uploadResult = FileService.ERROR_GENERAL;
-        RedirectView rv = new RedirectView("/result", true);
+        RedirectView rv = new RedirectView("/home", true);
+        ra.addFlashAttribute("attemptFileUpload", true);
+        ra.addFlashAttribute("attemptFileDelete", false);
 
         try {
             uploadResult = fileService.uploadFile(fileForm.getFile(), user);
@@ -49,31 +48,42 @@ public class FileController {
             ra.addFlashAttribute("uploadSucceeded", false);
             return rv;
         } catch (IOException e) {
-            ra.addFlashAttribute("uploadFailedMessage", "Upload failed");
+            ra.addFlashAttribute("uploadFailedMessage", "Upload failed: " + e.getMessage());
             ra.addFlashAttribute("uploadSucceeded", false);
-            e.printStackTrace();
             return rv;
         }
-        if (uploadResult == fileService.ERROR_FILE_ALREADY_EXISTED) {
+        if (uploadResult > 0) {
+            ra.addFlashAttribute("uploadSuccessfulMessage", "Upload successfully completed");
+            ra.addFlashAttribute("uploadSucceeded", true);
+        } else if (uploadResult == fileService.ERROR_NO_FILE_SELECTED) {
+            ra.addFlashAttribute("uploadFailedMessage", "No file selected!");
+            ra.addFlashAttribute("uploadSucceeded", false);
+        } else if (uploadResult == fileService.ERROR_FILE_ALREADY_EXISTED) {
             ra.addFlashAttribute("uploadFailedMessage", "Upload failed because a file with the same name already existed.");
             ra.addFlashAttribute("uploadSucceeded", false);
         } else {
-            ra.addFlashAttribute("uploadSucceeded", true);
-            rv.setUrl("/home");
-            model.addAttribute("filesFromUser", this.fileService.getFilesByUser(user.getUserId()));
+            ra.addFlashAttribute("uploadFailedMessage", "Upload failed.");
+            ra.addFlashAttribute("uploadSucceeded", false);
         }
+        model.addAttribute("filesFromUser", this.fileService.getFilesByUser(user.getUserId()));
         return rv;
     }
 
-    @PostMapping("/delete/{fileId}")
-    public String deleteFile(@PathVariable Integer fileId, Model model) {
+    @RequestMapping("/delete/{fileId}")
+    public RedirectView deleteFile(@PathVariable Integer fileId, Model model, RedirectAttributes ra) {
         fileService.deleteFile(fileId);
-        return "redirect:/home";
+        RedirectView rv = new RedirectView("/home", true);
+        ra.addFlashAttribute("attemptFileDelete", true);
+        ra.addFlashAttribute("attemptFileUpload", false);
+        ra.addFlashAttribute("deleteSuccessfulMessage", "File deleted.");
+        return rv;
     }
 
-    @PostMapping("/download/{fileId}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable Integer fileId) {
+    @RequestMapping("/download/{fileId}")
+    public ResponseEntity<byte[]> downloadFile(@PathVariable Integer fileId, Model model) {
         FileCustom file = fileService.getFileByFileId(fileId);
+        model.addAttribute("attemptFileDelete", false);
+        model.addAttribute("attemptFileUpload", false);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
                 .body(file.getFiledata());

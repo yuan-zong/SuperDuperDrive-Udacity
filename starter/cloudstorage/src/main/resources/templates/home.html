@@ -38,6 +38,17 @@
                                         <button type="submit" class="btn btn-dark" id="uploadButton">Upload</button>
                                     </div>
                                 </div>
+                                <div th:if="${attemptFileUpload}">
+                                    <div th:if="${uploadSucceeded}" class="alert alert-success fill-parent" id="fileUploadSuccess">
+                                        <span th:text="${uploadSuccessfulMessage}">upload successful</span>
+                                    </div>
+                                    <div th:unless="${uploadSucceeded}" class="alert alert-danger fill-parent" id="fileUploadfail">
+                                        <span th:text="${uploadFailedMessage}">upload failed</span>
+                                    </div>
+                                </div>
+                                <div th:if="${attemptFileDelete}" class="alert alert-success fill-parent" id="fileDeleteSuccess">
+                                    <span th:text="${deleteSuccessfulMessage}">delete successful</span>
+                                </div>
                             </div>
                         </form>
 
@@ -54,8 +65,8 @@
                                 <tbody th:each="fileFromUser : ${filesFromUser}">
                                 <tr>
                                     <td>
-                                        <a target="_blank" class="btn btn-success" th:action="@{'files/download/'+${fileFromUser.fileId}}" method="POST">View</a>
-                                        <a  class="btn btn-danger" th:action="@{'files/delete/' + ${fileFromUser.fileId}}" method="POST">Delete</a>
+                                        <a target="_blank" class="btn btn-success" th:href="@{'/files/download/'+${fileFromUser.fileId}}">View</a>
+                                        <a  class="btn btn-danger" th:href="@{'/files/delete/' + ${fileFromUser.fileId}}">Delete</a>
                                     </td>
                                     <th scope="row" th:text="${fileFromUser.filename}">ExampleFile.txt</th>
                                 </tr>
