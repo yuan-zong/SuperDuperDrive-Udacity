@@ -1,9 +1,6 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
-import com.udacity.jwdnd.course1.cloudstorage.model.CredentialCustom;
-import com.udacity.jwdnd.course1.cloudstorage.model.CredentialForm;
-import com.udacity.jwdnd.course1.cloudstorage.model.FileForm;
-import com.udacity.jwdnd.course1.cloudstorage.model.User;
+import com.udacity.jwdnd.course1.cloudstorage.model.*;
 import com.udacity.jwdnd.course1.cloudstorage.services.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -21,23 +18,26 @@ public class HomeController {
 
     private FileService fileService;
     private CredentialService credentialService;
+    private NoteService noteService;
     private UserService userService;
     private EncryptionService encryptionService;
 
-    public HomeController(FileService fileService, CredentialService credentialService, UserService userService, EncryptionService encryptionService) {
+    public HomeController(FileService fileService, CredentialService credentialService, NoteService noteService, UserService userService, EncryptionService encryptionService) {
         this.fileService = fileService;
         this.credentialService = credentialService;
+        this.noteService = noteService;
         this.userService = userService;
         this.encryptionService = encryptionService;
     }
 
     @GetMapping
-    public String getHomePage(Authentication authentication, FileForm fileForm, CredentialForm credentialForm, Model model) {
+    public String getHomePage(Authentication authentication, FileForm fileForm, CredentialForm credentialForm, NoteForm noteForm, Model model) {
         String username = authentication.getName();
         User user = userService.getUser(username);
         model.addAttribute("filesFromUser", fileService.getFilesByUser(user.getUserId()));
         model.addAttribute("encryptionService", encryptionService);
         model.addAttribute("credentialsFromUser", credentialService.getCredentialsByUser(user.getUserId()));
+        model.addAttribute("notesFromUser", noteService.getNotesByUser(user.getUserId()));
         return "home";
     }
 
