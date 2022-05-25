@@ -38,26 +38,47 @@ public class CredentialController {
 
         RedirectView rv = new RedirectView("/home", true);
         CredentialCustom credentialExisted = credentialService.getCredentialByCredentialid(credentialForm.getCredentialid());
+        ra.addFlashAttribute("attemptCredentialChange", true);
         if (credentialExisted == null) {
             credentialService.insert(credentialForm.getUrl(), credentialForm.getUsername(), credentialForm.getPassword(), user);
             ra.addFlashAttribute("credentialChanged", true);
-            ra.addFlashAttribute("credentialChangedMessage", "Credential successfully added");
+            ra.addFlashAttribute("credentialStatusMessage", "Credential successfully added");
         } else {
-            credentialService.updateCredential(credentialExisted, credentialForm.getUrl(), credentialForm.getUsername(), credentialForm.getPassword());
-            ra.addFlashAttribute("credentialChanged", true);
-            ra.addFlashAttribute("credentialChangedMessage", "Credential successfully updated");
+            if (credentialExisted.getUserid() == user.getUserId()) {
+                credentialService.updateCredential(credentialExisted, credentialForm.getUrl(), credentialForm.getUsername(), credentialForm.getPassword());
+                ra.addFlashAttribute("credentialChanged", true);
+                ra.addFlashAttribute("credentialStatusMessage", "Credential successfully updated");
+            } else {
+                ra.addFlashAttribute("credentialChanged", false);
+                ra.addFlashAttribute("credentialStatusMessage", "You have no access to this item!");
+            }
         }
         model.addAttribute("credentialsFromUser", credentialService.getCredentialsByUser(user.getUserId()));
         return rv;
     }
 
     @RequestMapping("/delete/{credentialid}")
-    public RedirectView deleteCredential(@PathVariable Integer credentialid, Model model, RedirectAttributes ra) {
-        credentialService.deleteCredential(credentialid);
+    public RedirectView deleteCredential(Authentication authentication, @PathVariable Integer credentialid, Model model, RedirectAttributes ra) {
+        String username = authentication.getName();
+        User user = userService.getUser(username);
+        CredentialCustom credentialExisted = credentialService.getCredentialByCredentialid(credentialid);
+        ra.addFlashAttribute("attemptCredentialChange", true);
+        if (credentialExisted == null){
+            ra.addFlashAttribute("credentialChanged", false);
+            ra.addFlashAttribute("credentialStatusMessage", "The item doesn't exist!");
+        } else {
+            if (credentialExisted.getUserid() == user.getUserId()) {
+                credentialService.deleteCredential(credentialid);
+                ra.addFlashAttribute("credentialChanged", true);
+                ra.addFlashAttribute("credentialChangedMessage", "Credential successfully deleted");
+            } else {
+                ra.addFlashAttribute("credentialChanged", false);
+                ra.addFlashAttribute("credentialStatusMessage", "You have no access to this item!");
+            }
+        }
+
         RedirectView rv = new RedirectView("/home", true);
 //        model.addAttribute("activeTab", "credentials");
-        ra.addFlashAttribute("credentialChanged", true);
-        ra.addFlashAttribute("credentialChangedMessage", "Credential successfully deleted");
         return rv;
     }
 }
