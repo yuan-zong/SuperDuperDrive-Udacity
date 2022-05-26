@@ -34,26 +34,51 @@ public class NoteController {
 
         RedirectView rv = new RedirectView("/home", true);
         NoteCustom noteExisted = noteService.getNoteByNoteid(noteForm.getNoteid());
+
+        ra.addFlashAttribute("attemptNoteChange", true);
         if (noteExisted == null) {
             noteService.insert(noteForm.getNotetitle(), noteForm.getNotedescription(), user);
             ra.addFlashAttribute("noteChanged", true);
-            ra.addFlashAttribute("noteChangedMessage", "Note successfully added");
+            ra.addFlashAttribute("noteStatusMessage", "Note successfully added");
         } else {
-            noteService.updateNote(noteExisted, noteForm.getNotetitle(), noteForm.getNotedescription());
-            ra.addFlashAttribute("noteChanged", true);
-            ra.addFlashAttribute("noteChangedMessage", "Note successfully updated");
+            if (noteExisted.getUserid() == user.getUserId()) {
+                noteService.updateNote(noteExisted, noteForm.getNotetitle(), noteForm.getNotedescription());
+                ra.addFlashAttribute("noteChanged", true);
+                ra.addFlashAttribute("noteStatusMessage", "Note successfully updated");
+            } else {
+                ra.addFlashAttribute("noteChanged", false);
+                ra.addFlashAttribute("noteStatusMessage", "You have no access to this item!");
+            }
         }
+
         model.addAttribute("notesFromUser", noteService.getNotesByUser(user.getUserId()));
         return rv;
     }
 
     @RequestMapping("/delete/{noteid}")
-    public RedirectView deleteNote(@PathVariable Integer noteid, Model model, RedirectAttributes ra) {
-        noteService.deleteNote(noteid);
+    public RedirectView deleteNote(Authentication authentication, @PathVariable Integer noteid, Model model, RedirectAttributes ra) {
+
         RedirectView rv = new RedirectView("/home", true);
+        String username = authentication.getName();
+        User user = userService.getUser(username);
+        NoteCustom noteExisted = noteService.getNoteByNoteid(noteid);
+
+        ra.addFlashAttribute("attemptNoteChange", true);
+        if (noteExisted == null){
+            ra.addFlashAttribute("noteChanged", false);
+            ra.addFlashAttribute("noteStatusMessage", "The item doesn't exist!");
+        } else {
+            if (noteExisted.getUserid() == user.getUserId()) {
+                noteService.deleteNote(noteid);
+                ra.addFlashAttribute("noteChanged", true);
+                ra.addFlashAttribute("noteStatusMessage", "Note successfully deleted");
+            } else {
+                ra.addFlashAttribute("noteChanged", false);
+                ra.addFlashAttribute("noteStatusMessage", "You have no access to this item!");
+            }
+        }
+
 //        model.addAttribute("activeTab", "notes");
-        ra.addFlashAttribute("noteChanged", true);
-        ra.addFlashAttribute("noteChangedMessage", "Note successfully deleted");
         return rv;
     }
 }
