@@ -1,16 +1,10 @@
 package com.udacity.jwdnd.course1.cloudstorage.services;
 
 import com.udacity.jwdnd.course1.cloudstorage.mapper.CredentialMapper;
-import com.udacity.jwdnd.course1.cloudstorage.mapper.FileMapper;
 import com.udacity.jwdnd.course1.cloudstorage.model.CredentialCustom;
-import com.udacity.jwdnd.course1.cloudstorage.model.FileCustom;
 import com.udacity.jwdnd.course1.cloudstorage.model.User;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -21,10 +15,6 @@ public class CredentialService {
     private CredentialMapper credentialMapper;
     private EncryptionService encryptionService;
 
-    public static int ERROR_FILE_ALREADY_EXISTED = -2;
-    public static int ERROR_FILE_NOT_FOUND = -3;
-    public static int ERROR_NO_FILE_SELECTED = -4;
-    public static int ERROR_GENERAL = -1;
 
     public CredentialService(CredentialMapper credentialMapper, EncryptionService encryptionService) {
         this.credentialMapper = credentialMapper;

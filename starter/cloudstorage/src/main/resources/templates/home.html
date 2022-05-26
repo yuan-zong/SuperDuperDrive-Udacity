@@ -12,7 +12,7 @@
         <div class="container">
             <div id="logoutDiv">
                 <form action="#" th:action="@{/logout}" method="POST">
-                    <button type="submit" class="btn btn-secondary float-right">Logout</button>
+                    <button type="submit" id="logout" class="btn btn-secondary float-right">Logout</button>
                 </form>
             </div>
             <div id="contentDiv" style="clear: right;">
@@ -29,10 +29,10 @@
                             <div class="container">
                                 <div class="row" style="margin: 1em;">
                                     <div class="col-sm-2">
-                                        <label for="fileUpload">Upload a New File:</label>
+                                        <label for="fileUploadPath">Upload a New File:</label>
                                     </div>
                                     <div class="col-sm-6" th:object="${fileForm}">
-                                        <input type="file" class="form-control-file" id="fileUpload" name="fileUpload" th:field="*{file}">
+                                        <input type="file" class="form-control-file" id="fileUploadPath" name="fileUploadPath" th:field="*{file}">
                                     </div>
                                     <div class="col-sm-4">
                                         <button type="submit" class="btn btn-dark" id="uploadButton">Upload</button>
@@ -70,8 +70,8 @@
                                 <tbody th:each="fileFromUser : ${filesFromUser}">
                                 <tr>
                                     <td>
-                                        <a target="_blank" class="btn btn-success" th:href="@{'/files/download/'+${fileFromUser.fileId}}">View</a>
-                                        <a  class="btn btn-danger" th:href="@{'/files/delete/' + ${fileFromUser.fileId}}">Delete</a>
+                                        <a target="_blank" class="btn btn-success" id="fileDownloadButton" th:href="@{'/files/download/'+${fileFromUser.fileId}}">Download</a>
+                                        <a  class="btn btn-danger" id="fileDeleteButton" th:href="@{'/files/delete/' + ${fileFromUser.fileId}}">Delete</a>
                                     </td>
                                     <th scope="row" th:text="${fileFromUser.filename}">ExampleFile.txt</th>
                                 </tr>
@@ -88,7 +88,7 @@
                                 <span th:text="${noteStatusMessage}">change failed</span>
                             </div>
                         </div>
-                        <button style="margin: 0.25em;" type="button" class="btn btn-info float-right" onclick="showNoteModal()">
+                        <button style="margin: 0.25em;" type="button" class="btn btn-info float-right" id="noteAddButton" onclick="showNoteModal()">
                             + Add a New Note
                         </button>
 
@@ -104,15 +104,15 @@
                                 <tbody th:each="noteFromUser : ${notesFromUser}">
                                     <tr>
                                         <td>
-                                            <button type="button" class="btn btn-success"
+                                            <button type="button" class="btn btn-success" id="noteEditButton"
                                                     th:onclick="javascript:showNoteModal([[${noteFromUser.noteid}]],
                                                 [[${noteFromUser.notetitle}]],[[${noteFromUser.notedescription}]])"
                                             >Edit</button>
-                                            <a class="btn btn-danger"
+                                            <a class="btn btn-danger" id="noteDeleteButton"
                                                th:href="@{'/notes/delete/' + ${noteFromUser.noteid}}">Delete</a>
                                         </td>
-                                        <th scope="row" th:text="${noteFromUser.notetitle}">Example Note Title</th>
-                                        <td th:text="${noteFromUser.notedescription}">Example Note Description </td>
+                                        <th scope="row" id="noteTitleDisplay" th:text="${noteFromUser.notetitle}">Example Note Title</th>
+                                        <td id="noteDescriptionDisplay" th:text="${noteFromUser.notedescription}">Example Note Description </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -145,7 +145,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary" onclick="$('#noteSubmit').click();">Save changes</button>
+                                        <button type="button" class="btn btn-primary" id="noteSubmitButton" onclick="$('#noteSubmit').click();">Save changes</button>
                                     </div>
                                 </div>
                             </div>
@@ -164,7 +164,7 @@
                             </div>
                         </div>
                         <button style="margin: 0.25em;" type="button"
-                                class="btn btn-info float-right" onclick="showCredentialModal()">
+                                class="btn btn-info float-right" id="credentialAddButton" onclick="showCredentialModal()">
                             + Add a New Credential
                         </button>
 
@@ -181,17 +181,17 @@
                                 <tbody th:each="credentialFromUser : ${credentialsFromUser}">
                                 <tr>
                                     <td>
-                                        <button type="button" class="btn btn-success"
+                                        <button type="button" class="btn btn-success" id="credentialEditButton"
                                                 th:onclick="javascript:showCredentialModal([[${credentialFromUser.credentialid}]],
                                                 [[${credentialFromUser.url}]],[[${credentialFromUser.username}]],
                                 [[${encryptionService.decryptValue(credentialFromUser.password, credentialFromUser.key)}]])"
                                         >Edit</button>
-                                        <a class="btn btn-danger" id="deleteCredentialButton"
+                                        <a class="btn btn-danger" id="credentialDeleteButton"
                                            th:href="@{'/credentials/delete/' + ${credentialFromUser.credentialid}}">Delete</a>
                                     </td>
-                                    <th scope="row" th:text="${credentialFromUser.url}">Example Credential URL</th>
-                                    <td th:text="${credentialFromUser.username}">Example Credential Username</td>
-                                    <td th:text="${credentialFromUser.password}">Example Credential Password</td>
+                                    <th id="credentialURLDisplay" scope="row" th:text="${credentialFromUser.url}">Example Credential URL</th>
+                                    <td id="credentialUsernameDisplay" th:text="${credentialFromUser.username}">Example Credential Username</td>
+                                    <td id="credentialPasswordDisplay" th:text="${credentialFromUser.password}">Example Credential Password</td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -229,8 +229,8 @@
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary"
+                                        <button type="button" id="credentialCancelButton" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        <button id="credentialSubmitButton" type="button" class="btn btn-primary"
                                                 onclick="$('#credentialSubmit').click();">Save changes</button>
                                     </div>
                                 </div>

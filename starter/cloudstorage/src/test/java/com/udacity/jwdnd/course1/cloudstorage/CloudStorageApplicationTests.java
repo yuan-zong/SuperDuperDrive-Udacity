@@ -3,7 +3,6 @@ package com.udacity.jwdnd.course1.cloudstorage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -13,13 +12,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 
 import java.io.File;
+import java.util.List;
+
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CloudStorageApplicationTests {
 
 	@LocalServerPort
 	private int port;
 
+	public String baseURL;
 	private WebDriver driver;
+
+	private String myTestUsername = "myTestUsername";
+	private String myTestPassword = "myTestPassword";
 
 	@BeforeAll
 	static void beforeAll() {
@@ -28,6 +35,7 @@ class CloudStorageApplicationTests {
 
 	@BeforeEach
 	public void beforeEach() {
+		baseURL = "http://localhost:" + port;
 		this.driver = new ChromeDriver();
 	}
 
@@ -39,6 +47,7 @@ class CloudStorageApplicationTests {
 	}
 
 	@Test
+	@Order(1)
 	public void getLoginPage() {
 		driver.get("http://localhost:" + this.port + "/login");
 		Assertions.assertEquals("Login", driver.getTitle());
@@ -119,6 +128,101 @@ class CloudStorageApplicationTests {
 
 	}
 
+	private void saveNoteNow(HomePage homePage, String noteTitleStr, String noteDescriptionStr) {
+		homePage.noteTitle.clear();
+		homePage.noteTitle.click();
+		homePage.noteTitle.sendKeys(noteTitleStr);
+		homePage.noteDescription.clear();
+		homePage.noteDescription.click();
+		homePage.noteDescription.sendKeys(noteDescriptionStr);
+		homePage.noteSubmitButton.click();
+	}
+
+	public void addNote(HomePage homePage, WebDriverWait webDriverWait, String noteTitleStr, String noteDescriptionStr){
+		webDriverWait.until(ExpectedConditions.elementToBeClickable(By.id("noteAddButton")));
+		homePage.noteAddButton.click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-title")));
+		saveNoteNow(homePage, noteTitleStr, noteDescriptionStr);
+	}
+	public void editNote(HomePage homePage, WebDriver driver, WebDriverWait webDriverWait, int idx, String newTitle, String newDescription){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteEditButton")));
+		List<WebElement> credentialEditButtons = driver.findElements(By.id("noteEditButton"));
+		credentialEditButtons.get(idx).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-title")));
+		saveNoteNow(homePage, newTitle, newDescription);
+	}
+
+	public void deleteNote(WebDriver driver, WebDriverWait webDriverWait, int idx){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteDeleteButton")));
+		List<WebElement> noteDeleteButtons = driver.findElements(By.id("noteDeleteButton"));
+		noteDeleteButtons.get(idx).click();
+	}
+
+
+	public String getNoteTitleDisplay(WebDriver driver, WebDriverWait webDriverWait, int idx){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteTitleDisplay")));
+		List<WebElement> noteTitleDisplays = driver.findElements(By.id("noteTitleDisplay"));
+		return noteTitleDisplays.get(idx).getAttribute("innerHTML");
+	}
+
+	public String getNoteDescriptionDisplay(WebDriver driver, WebDriverWait webDriverWait, int idx){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteDescriptionDisplay")));
+		List<WebElement> noteDescriptionDisplays = driver.findElements(By.id("noteDescriptionDisplay"));
+		return noteDescriptionDisplays.get(idx).getAttribute("innerHTML");
+	}
+
+	private void saveCredentialNow(HomePage homePage, String url, String username, String password) {
+		homePage.credentialURL.clear();
+		homePage.credentialURL.click();
+		homePage.credentialURL.sendKeys(url);
+		homePage.credentialUsername.clear();
+		homePage.credentialUsername.click();
+		homePage.credentialUsername.sendKeys(username);
+		homePage.credentialPasswd.clear();
+		homePage.credentialPasswd.click();
+		homePage.credentialPasswd.sendKeys(password);
+		homePage.credentialSubmitButton.click();
+	}
+
+	public void addCredential(HomePage homePage, WebDriverWait webDriverWait, String url, String username, String password){
+		webDriverWait.until(ExpectedConditions.elementToBeClickable(By.id("credentialAddButton")));
+		homePage.credentialAddButton.click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
+		saveCredentialNow(homePage, url, username, password);
+	}
+	public void editCredential(HomePage homePage, WebDriver driver, WebDriverWait webDriverWait, int idx, String newURL, String newUsername, String newPassword){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialEditButton")));
+		List<WebElement> credentialEditButtons = driver.findElements(By.id("credentialEditButton"));
+		credentialEditButtons.get(idx).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
+		saveCredentialNow(homePage, newURL, newUsername, newPassword);
+	}
+
+	public void deleteCredential(WebDriver driver, WebDriverWait webDriverWait, int idx){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialDeleteButton")));
+		List<WebElement> credentialDeleteButtons = driver.findElements(By.id("credentialDeleteButton"));
+		credentialDeleteButtons.get(idx).click();
+	}
+
+	public String getCredentialURLDisplay(WebDriver driver, WebDriverWait webDriverWait, int idx){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialURLDisplay")));
+		List<WebElement> credentialURLDisplays = driver.findElements(By.id("credentialURLDisplay"));
+		return credentialURLDisplays.get(idx).getAttribute("innerHTML");
+	}
+
+	public String getCredentialUsernameDisplay(WebDriver driver, WebDriverWait webDriverWait, int idx){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialUsernameDisplay")));
+		List<WebElement> credentialUsernameDisplays = driver.findElements(By.id("credentialUsernameDisplay"));
+		return credentialUsernameDisplays.get(idx).getAttribute("innerHTML");
+	}
+
+	public String getCredentialPasswordDisplay(WebDriver driver, WebDriverWait webDriverWait, int idx){
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialPasswordDisplay")));
+		List<WebElement> credentialPasswordDisplays = driver.findElements(By.id("credentialPasswordDisplay"));
+		return credentialPasswordDisplays.get(idx).getAttribute("innerHTML");
+	}
+
+
 	/**
 	 * PLEASE DO NOT DELETE THIS TEST. You may modify this test to work with the 
 	 * rest of your code. 
@@ -131,6 +235,7 @@ class CloudStorageApplicationTests {
 	 * https://review.udacity.com/#!/rubrics/2724/view 
 	 */
 	@Test
+	@Order(2)
 	public void testRedirection() {
 		// Create a test account
 		doMockSignUp("Redirection","Test","RT","123");
@@ -152,6 +257,7 @@ class CloudStorageApplicationTests {
 	 * https://attacomsian.com/blog/spring-boot-custom-error-page#displaying-custom-error-page
 	 */
 	@Test
+	@Order(3)
 	public void testBadUrl() {
 		// Create a test account
 		doMockSignUp("URL","Test","UT","123");
@@ -176,6 +282,7 @@ class CloudStorageApplicationTests {
 	 * https://spring.io/guides/gs/uploading-files/ under the "Tuning File Upload Limits" section.
 	 */
 	@Test
+	@Order(7)
 	public void testLargeUpload() {
 		// Create a test account
 		doMockSignUp("Large File","Test","LFT","123");
@@ -185,8 +292,8 @@ class CloudStorageApplicationTests {
 		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
 		String fileName = "upload5m.zip";
 
-		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("fileUpload")));
-		WebElement fileSelectButton = driver.findElement(By.id("fileUpload"));
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("fileUploadPath")));
+		WebElement fileSelectButton = driver.findElement(By.id("fileUploadPath"));
 		fileSelectButton.sendKeys(new File(fileName).getAbsolutePath());
 
 		WebElement uploadButton = driver.findElement(By.id("uploadButton"));
@@ -200,6 +307,128 @@ class CloudStorageApplicationTests {
 
 	}
 
+	@Test
+	@Order(4)
+	public void testHomePageAccessibility() {
+
+		driver.get(baseURL + "/home");
+		Assertions.assertFalse(driver.getCurrentUrl().contains("home"));
+		driver.get(baseURL + "/login");
+
+		// login with a user that doesn't exist
+		LoginPage loginPage = new LoginPage(driver);
+		loginPage.login("HomeT", "123");
+		Assertions.assertFalse(driver.getCurrentUrl().contains("home"));
+
+		// Create a test account
+		doMockSignUp("Large File","Test",myTestUsername, myTestPassword);
+		doLogIn(myTestUsername, myTestPassword);
+		Assertions.assertTrue(driver.getCurrentUrl().contains("home"));
+
+		HomePage homePage = new HomePage(driver);
+		homePage.logout();
+		driver.get(baseURL + "/home");
+		Assertions.assertFalse(driver.getCurrentUrl().contains("home"));
+
+	}
 
 
+
+	@Test
+	@Order(5)
+	public void testNotes(){
+
+		// use the username and password created in testHomePageAccessibility()
+		doLogIn(myTestUsername, myTestPassword);
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+		HomePage homePage = new HomePage(driver);
+		// add a note
+		homePage.noteTab.click();
+		addNote(homePage, webDriverWait, "note title", "note description");
+		homePage.noteTab.click();
+		Assertions.assertEquals(getNoteTitleDisplay(driver, webDriverWait, 0), "note title");
+		Assertions.assertEquals(getNoteDescriptionDisplay(driver, webDriverWait, 0), "note description");
+
+		// modify the note
+		editNote(homePage, driver, webDriverWait, 0, "note title modified", "note description modified");
+		homePage.noteTab.click();
+		Assertions.assertEquals(getNoteTitleDisplay(driver, webDriverWait, 0), "note title modified");
+		Assertions.assertEquals(getNoteDescriptionDisplay(driver, webDriverWait, 0), "note description modified");
+
+		// logout and back in and check again
+		homePage.logout();
+		doLogIn(myTestUsername, myTestPassword);
+		homePage.noteTab.click();
+		Assertions.assertEquals(getNoteTitleDisplay(driver, webDriverWait, 0), "note title modified");
+		Assertions.assertEquals(getNoteDescriptionDisplay(driver, webDriverWait, 0), "note description modified");
+
+		// delete the note
+		deleteNote(driver, webDriverWait, 0);
+		homePage.noteTab.click();
+		Assertions.assertFalse(driver.getPageSource().contains("note title modified"));
+		Assertions.assertFalse(driver.getPageSource().contains("note description modified"));
+	}
+
+
+	@Test
+	@Order(6)
+	public void testCredentials(){
+
+		// use the username and password created in testHomePageAccessibility()
+		doLogIn(myTestUsername, myTestPassword);
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+		HomePage homePage = new HomePage(driver);
+		// add a credential
+		homePage.credentialTab.click();
+		addCredential(homePage, webDriverWait, "aURL", "aUsername", "aPassword");
+		homePage.credentialTab.click();
+		Assertions.assertEquals(getCredentialURLDisplay(driver, webDriverWait, 0), "aURL");
+		Assertions.assertEquals(getCredentialUsernameDisplay(driver, webDriverWait, 0), "aUsername");
+		// password displayed here should be encrypted
+		Assertions.assertNotEquals(getCredentialUsernameDisplay(driver, webDriverWait, 0), "aPassword");
+		// check if the decrypted password match
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialEditButton")));
+		List<WebElement> credentialEditButtons = driver.findElements(By.id("credentialEditButton"));
+		credentialEditButtons.get(0).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
+		Assertions.assertEquals(homePage.credentialPasswd.getAttribute("value"), "aPassword");
+		homePage.credentialCancelButton.click();
+
+		// modify the credential
+		editCredential(homePage, driver, webDriverWait, 0, "differentURL", "differentUsername", "differentPassword");
+		homePage.credentialTab.click();
+		Assertions.assertEquals(getCredentialURLDisplay(driver, webDriverWait, 0), "differentURL");
+		Assertions.assertEquals(getCredentialUsernameDisplay(driver, webDriverWait, 0), "differentUsername");
+		// password displayed here should be encrypted
+		Assertions.assertNotEquals(getCredentialUsernameDisplay(driver, webDriverWait, 0), "differentPassword");
+		// check if the decrypted password match
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialEditButton")));
+		credentialEditButtons = driver.findElements(By.id("credentialEditButton"));
+		credentialEditButtons.get(0).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
+		Assertions.assertEquals(homePage.credentialPasswd.getAttribute("value"), "differentPassword");
+		homePage.credentialCancelButton.click();
+
+		// logout and back in and check again
+		homePage.logout();
+		doLogIn( myTestUsername, myTestPassword);
+		homePage.credentialTab.click();
+		Assertions.assertEquals(getCredentialURLDisplay(driver, webDriverWait, 0), "differentURL");
+		Assertions.assertEquals(getCredentialUsernameDisplay(driver, webDriverWait, 0), "differentUsername");
+		// password displayed here should be encrypted
+		Assertions.assertNotEquals(getCredentialUsernameDisplay(driver, webDriverWait, 0), "differentPassword");
+		// check if the decrypted password match
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialEditButton")));
+		credentialEditButtons = driver.findElements(By.id("credentialEditButton"));
+		credentialEditButtons.get(0).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
+		Assertions.assertEquals(homePage.credentialPasswd.getAttribute("value"), "differentPassword");
+		homePage.credentialCancelButton.click();
+
+		// delete the Credential
+		deleteCredential(driver, webDriverWait, 0);
+		homePage.credentialTab.click();
+		Assertions.assertFalse(driver.getPageSource().contains("differentURL"));
+		Assertions.assertFalse(driver.getPageSource().contains("differentUsername"));
+	}
 }
