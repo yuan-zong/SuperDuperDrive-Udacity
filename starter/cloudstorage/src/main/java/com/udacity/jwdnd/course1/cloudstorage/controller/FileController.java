@@ -13,10 +13,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
 @Controller
@@ -70,22 +71,57 @@ public class FileController {
     }
 
     @RequestMapping("/delete/{fileId}")
-    public RedirectView deleteFile(@PathVariable Integer fileId, Model model, RedirectAttributes ra) {
-        fileService.deleteFile(fileId);
+    public RedirectView deleteFile(Authentication authentication, @PathVariable Integer fileId, Model model, RedirectAttributes ra) {
+
+        String username = authentication.getName();
+        User user = userService.getUser(username);
+        FileCustom fileExisted = fileService.getFileByFileId(fileId);
         RedirectView rv = new RedirectView("/home", true);
-        ra.addFlashAttribute("attemptFileDelete", true);
         ra.addFlashAttribute("attemptFileUpload", false);
-        ra.addFlashAttribute("deleteSuccessfulMessage", "File deleted.");
+        ra.addFlashAttribute("attemptFileAccess", true);
+        if (fileExisted == null){
+            ra.addFlashAttribute("fileOperationSucceeded", false);
+            ra.addFlashAttribute("fileStatusMessage", "The item doesn't exist!");
+        } else {
+            if (fileExisted.getUserid() == user.getUserId()) {
+                fileService.deleteFile(fileId);
+                ra.addFlashAttribute("fileOperationSucceeded", true);
+                ra.addFlashAttribute("fileStatusMessage", "File deleted.");
+            } else {
+                ra.addFlashAttribute("fileOperationSucceeded", false);
+                ra.addFlashAttribute("fileStatusMessage", "You have no access to this item!");
+            }
+        }
+
+
         return rv;
     }
 
     @RequestMapping("/download/{fileId}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable Integer fileId, Model model) {
-        FileCustom file = fileService.getFileByFileId(fileId);
-        model.addAttribute("attemptFileDelete", false);
-        model.addAttribute("attemptFileUpload", false);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
-                .body(file.getFiledata());
+    public Object downloadFile(HttpServletResponse response, Authentication authentication, @PathVariable Integer fileId,
+                                     Model model, RedirectAttributes ra) {
+        String username = authentication.getName();
+        User user = userService.getUser(username);
+        FileCustom fileExisted = fileService.getFileByFileId(fileId);
+        RedirectView rv = new RedirectView("/home", true);
+        ra.addFlashAttribute("attemptFileAccess", true);
+        ra.addFlashAttribute("attemptFileUpload", false);
+        if (fileExisted == null){
+            ra.addFlashAttribute("fileOperationSucceeded", false);
+            ra.addFlashAttribute("fileStatusMessage", "The item doesn't exist!");
+        } else {
+            if (fileExisted.getUserid() == user.getUserId()) {
+                model.addAttribute("attemptFileAccess", true);
+                model.addAttribute("fileStatusMessage", "");
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileExisted.getFilename() + "\"")
+                        .body(fileExisted.getFiledata());
+            } else {
+                ra.addFlashAttribute("fileOperationSucceeded", false);
+                ra.addFlashAttribute("fileStatusMessage", "You have no access to this item!");
+            }
+        }
+        return rv;
     }
+
 }

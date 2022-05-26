@@ -46,8 +46,13 @@
                                         <span th:text="${uploadFailedMessage}">upload failed</span>
                                     </div>
                                 </div>
-                                <div th:if="${attemptFileDelete}" class="alert alert-success fill-parent" id="fileDeleteSuccess">
-                                    <span th:text="${deleteSuccessfulMessage}">delete successful</span>
+                                <div th:if="${attemptFileAccess}">
+                                    <div th:if="${fileOperationSucceeded}" class="alert alert-success fill-parent" id="fileAccessSuccess">
+                                        <span th:text="${fileStatusMessage}">file access successful</span>
+                                    </div>
+                                    <div th:unless="${fileOperationSucceeded}" class="alert alert-danger fill-parent" id="fileAccessfail">
+                                        <span th:text="${fileStatusMessage}">file access failed</span>
+                                    </div>
                                 </div>
                             </div>
                         </form>
